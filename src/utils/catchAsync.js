@@ -1,0 +1,11 @@
+/**
+ * Async Error Handler Wrapper
+ * Eliminates try-catch boilerplate in controllers
+ */
+const catchAsync = (fn) => {
+  return (req, res, next) => {
+    return fn(req, res, next).catch(next);
+  };
+};
+
+module.exports = catchAsync;
