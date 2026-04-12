@@ -186,12 +186,13 @@ class EventController {
   async getEventsByAgentId(req, res, next) {
     try {
       const { agentId } = req.params;
-      const { page = 1, limit = 10 } = req.query;
+      const { page = 1, limit = 10, status } = req.query;
 
       const result = await eventService.getEventsByAgentId(
         agentId,
         parseInt(page),
-        parseInt(limit)
+        parseInt(limit),
+        status
       );
 
       res.status(200).json({

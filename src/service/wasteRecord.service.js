@@ -1,6 +1,7 @@
 const wasteRecordRepository = require('../repository/wasteRecord.repository');
 const agentRepository = require('../repository/agent.repository');
 const { Beach, WasteRecord } = require('../models');
+const Event = require('../models/Event');
 const {
   NotFoundError,
   ValidationError,
@@ -192,14 +193,62 @@ class WasteRecordService {
       );
     }
 
+    if (!wasteData.eventId) {
+      throw new ValidationError('Event ID is required for agent submissions');
+    }
+
+    const event = await Event.findOne({
+      _id: wasteData.eventId,
+      isDeleted: false,
+    });
+
+    if (!event) {
+      throw new NotFoundError('Event');
+    }
+
+    if (!event.agentId || event.agentId.toString() !== String(agentUser.id)) {
+      throw new AuthorizationError(
+        'You can only submit waste records for events assigned to you.'
+      );
+    }
+
+    if (event.status === 'CANCELLED') {
+      throw new ValidationError(
+        'Cannot submit waste records for cancelled events.'
+      );
+    }
+
+    const assignedBeachId = String(
+      freshAgent.assignedBeach?._id || freshAgent.assignedBeach
+    );
+
+    if (String(event.beachId) !== assignedBeachId) {
+      throw new ValidationError(
+        'Selected event does not belong to your assigned beach.'
+      );
+    }
+
     const record = new WasteRecord({
       ...wasteData,
-      beachId: freshAgent.assignedBeach,
+      beachId: assignedBeachId,
       recordedBy: agentUser.id,
     });
 
-    await record.save();
-    return record;
+    const savedRecord = await record.save();
+
+    // Read-back verification prevents false positives when persistence fails.
+    const persistedRecord = await WasteRecord.findById(savedRecord._id)
+      .populate('eventId', 'title startDate')
+      .populate('recordedBy', 'name email')
+      .populate('beachId', 'name location.city');
+
+    if (!persistedRecord) {
+      throw new ValidationError(
+        'Waste record could not be confirmed in the database. Please retry.'
+      );
+    }
+
+    return persistedRecord;
   }
 
   /**
@@ -219,6 +268,8 @@ class WasteRecordService {
         .sort({ collectionDate: -1 })
         .skip(skip)
         .limit(parseInt(limit))
+        .populate('eventId', 'title startDate')
+        .populate('recordedBy', 'name email')
         .populate('beachId', 'name location.city'),
       WasteRecord.countDocuments(filter),
     ]);

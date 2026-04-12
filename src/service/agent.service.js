@@ -2,6 +2,7 @@ const agentRepository = require('../repository/agent.repository');
 const { registerAgent } = require('./auth.service');
 const { Beach } = require('../models');
 const User = require('../models/User');
+const Event = require('../models/Event');
 const { NotFoundError } = require('../utils/AppError');
 
 class AgentService {
@@ -37,6 +38,12 @@ class AgentService {
         await beach.save();
       }
     }
+
+    // Unassign deleted agent from active events.
+    await Event.updateMany(
+      { agentId: agentId, isDeleted: false },
+      { $unset: { agentId: 1 } }
+    );
 
     await agentRepository.delete(agentId);
     return agent;

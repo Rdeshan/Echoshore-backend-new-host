@@ -56,6 +56,11 @@ const sendAgentCredentialsEmail = async (agentEmail, agentData) => {
       return false;
     }
 
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5175').replace(
+      /\/+$/,
+      ''
+    );
+
     const mailOptions = {
       from: mailFrom,
       to: agentEmail,
@@ -90,7 +95,7 @@ const sendAgentCredentialsEmail = async (agentEmail, agentData) => {
             </div>
             
             <div style="margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              <a href="${frontendUrl}/login" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 Go to Login
               </a>
             </div>

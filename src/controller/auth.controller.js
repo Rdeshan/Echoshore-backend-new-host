@@ -51,13 +51,18 @@ const googleCallback = (req, res) => {
   const user = req.user;
   const token = generateToken(user);
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5175').replace(
+    /\/+$/,
+    ''
+  );
   res.redirect(`${frontendUrl}/login?token=${token}`);
 };
 
 const getMe = async (req, res) => {
   const User = require('../models/User');
-  const user = await User.findById(req.user.id).select('-password');
+  const user = await User.findById(req.user.id)
+    .select('-password')
+    .populate('assignedBeach', 'name location isActive');
   res.json({ user, token: req.token });
 };
 
@@ -157,6 +162,7 @@ const deleteUser = async (req, res) => {
   try {
     const User = require('../models/User');
     const Beach = require('../models/Beach');
+    const Event = require('../models/Event');
     const { userId } = req.params;
 
     const user = await User.findById(userId);
@@ -167,10 +173,30 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    // If an agent is deleted, remove stale assignment from the beach.
-    if (user.role === 'agent' && user.assignedBeach) {
-      await Beach.findByIdAndUpdate(user.assignedBeach, {
-        $pull: { assignedAgents: user._id },
+    // Hard delete agents and clear related references.
+    if (user.role === 'agent') {
+      if (user.assignedBeach) {
+        await Beach.findByIdAndUpdate(user.assignedBeach, {
+          $pull: { assignedAgents: user._id },
+        });
+      }
+
+      await Event.updateMany(
+        { agentId: user._id, isDeleted: false },
+        { $unset: { agentId: 1 } }
+      );
+
+      await User.findByIdAndDelete(userId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Agent deleted permanently',
+        data: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          hardDeleted: true,
+        },
       });
     }
 

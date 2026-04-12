@@ -32,6 +32,7 @@ const agentValidation = {
   // beachId is intentionally absent — injected from JWT in service layer
   agentCreateWasteRecord: {
     body: Joi.object({
+      eventId: Joi.string().hex().length(24).required(),
       plasticType: Joi.string()
         .valid(...Object.keys(PLASTIC_TYPES))
         .required(),

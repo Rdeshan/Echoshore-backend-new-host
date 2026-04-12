@@ -8,7 +8,7 @@ class AgentRepository extends BaseRepository {
 
   async findAllAgents() {
     return this.model
-      .find({ role: 'agent' })
+      .find({ role: 'agent', isDeleted: false })
       .select('-password -googleId')
       .populate('assignedBeach', 'name location isActive')
       .sort({ createdAt: -1 });
@@ -16,14 +16,14 @@ class AgentRepository extends BaseRepository {
 
   async findAgentById(agentId) {
     return this.model
-      .findOne({ _id: agentId, role: 'agent' })
+      .findOne({ _id: agentId, role: 'agent', isDeleted: false })
       .select('-password -googleId')
       .populate('assignedBeach', 'name location isActive');
   }
 
   async findAgentsByBeach(beachId) {
     return this.model
-      .find({ role: 'agent', assignedBeach: beachId })
+      .find({ role: 'agent', assignedBeach: beachId, isDeleted: false })
       .select('-password -googleId');
   }
 }

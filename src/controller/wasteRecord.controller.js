@@ -17,6 +17,13 @@ class WasteRecordController {
           }
         : null,
       eventId: record.eventId,
+      event: record.eventId
+        ? {
+            id: record.eventId._id || record.eventId,
+            title: record.eventId?.title,
+            startDate: record.eventId?.startDate,
+          }
+        : null,
       plasticType: record.plasticType,
       weight: record.weight,
       source: record.source,
@@ -24,6 +31,13 @@ class WasteRecordController {
       collectionDate: record.collectionDate,
       carbonOffset: record.carbonOffset,
       recordedBy: record.recordedBy,
+      submittedBy: record.recordedBy
+        ? {
+            id: record.recordedBy._id || record.recordedBy,
+            name: record.recordedBy?.name,
+            email: record.recordedBy?.email,
+          }
+        : null,
       isVerified: record.isVerified,
       notes: record.notes,
       createdAt: record.createdAt,
@@ -182,7 +196,7 @@ class WasteRecordController {
     );
     return ResponseHandler.created(
       res,
-      { record },
+      { record: this.formatWasteRecordResponse(record) },
       'Waste record submitted successfully'
     );
   });
@@ -195,9 +209,14 @@ class WasteRecordController {
       req.user,
       req.query
     );
+
+    const formattedRecords = result.records.map((record) =>
+      this.formatWasteRecordResponse(record)
+    );
+
     return ResponseHandler.paginated(
       res,
-      result.records,
+      formattedRecords,
       req.query.page || 1,
       req.query.limit || 20,
       result.pagination.total,

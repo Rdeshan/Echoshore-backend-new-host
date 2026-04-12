@@ -377,13 +377,18 @@ class EventService {
    * Get events by Agent ID
    * Returns all events assigned to a specific agent
    */
-  async getEventsByAgentId(agentId, page = 1, limit = 10) {
+  async getEventsByAgentId(agentId, page = 1, limit = 10, status) {
     validateObjectId(agentId, 'Agent ID');
 
     const query = {
       agentId,
       isDeleted: false,
     };
+
+    const allowedStatuses = ['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'];
+    if (status && allowedStatuses.includes(String(status).toUpperCase())) {
+      query.status = String(status).toUpperCase();
+    }
 
     const skip = (page - 1) * limit;
 

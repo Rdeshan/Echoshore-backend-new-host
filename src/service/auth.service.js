@@ -88,7 +88,10 @@ const registerUser = async ({
 };
 
 const loginUser = async ({ email, password }) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).populate(
+    'assignedBeach',
+    'name location isActive'
+  );
   if (!user) {
     throw new Error('INVALID_CREDENTIALS');
   }
@@ -115,6 +118,7 @@ const loginUser = async ({ email, password }) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      assignedBeach: user.assignedBeach || null,
     },
   };
 };
@@ -259,12 +263,23 @@ const deleteAccount = async (userId) => {
     throw new Error('USER_NOT_FOUND');
   }
 
-  if (user.role === ROLES.AGENT && user.assignedBeach) {
+  if (user.role === ROLES.AGENT) {
     const Beach = require('../models/Beach');
-    await Beach.findByIdAndUpdate(user.assignedBeach, {
-      $pull: { assignedAgents: user._id },
-    });
-    user.assignedBeach = null;
+    const Event = require('../models/Event');
+
+    if (user.assignedBeach) {
+      await Beach.findByIdAndUpdate(user.assignedBeach, {
+        $pull: { assignedAgents: user._id },
+      });
+    }
+
+    await Event.updateMany(
+      { agentId: user._id, isDeleted: false },
+      { $unset: { agentId: 1 } }
+    );
+
+    await User.findByIdAndDelete(userId);
+    return { message: 'Account deleted successfully' };
   }
 
   user.email = buildArchivedEmail(user.email, user._id);

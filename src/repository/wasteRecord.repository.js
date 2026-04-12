@@ -37,6 +37,7 @@ class WasteRecordRepository extends BaseRepository {
         .skip(skip)
         .limit(parseInt(limit))
         .populate('beachId', 'name location.city')
+        .populate('eventId', 'title startDate')
         .populate('recordedBy', 'name email'),
       this.model.countDocuments(activeFilter),
     ]);
