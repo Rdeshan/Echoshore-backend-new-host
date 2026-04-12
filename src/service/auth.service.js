@@ -8,7 +8,8 @@ const { sendAgentCredentialsEmail } = require('../config/email');
 const { generateRandomSixDigit } = require('../utils/random');
 
 const buildArchivedEmail = (email, userId) => {
-  const [local = 'deleted', domain = 'deleted.local'] = String(email).split('@');
+  const [local = 'deleted', domain = 'deleted.local'] =
+    String(email).split('@');
   return `${local}+deleted-${Date.now()}-${userId}@${domain}`;
 };
 
@@ -204,7 +205,12 @@ const registerAgent = async ({ email, password, name, nic, assignedBeach }) => {
   await agent.save();
 
   // Keep beach assignment ids in sync with live agent records.
-  const syncedAgentIds = [...new Set([...activeAgentsOnBeach.map((a) => a._id.toString()), agent._id.toString()])];
+  const syncedAgentIds = [
+    ...new Set([
+      ...activeAgentsOnBeach.map((a) => a._id.toString()),
+      agent._id.toString(),
+    ]),
+  ];
   beach.assignedAgents = syncedAgentIds;
   await beach.save();
 

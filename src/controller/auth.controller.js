@@ -3,7 +3,8 @@ const { generateToken } = require('../config/jwt');
 const logger = require('../config/logger');
 
 const buildArchivedEmail = (email, userId) => {
-  const [local = 'deleted', domain = 'deleted.local'] = String(email).split('@');
+  const [local = 'deleted', domain = 'deleted.local'] =
+    String(email).split('@');
   return `${local}+deleted-${Date.now()}-${userId}@${domain}`;
 };
 
@@ -51,10 +52,9 @@ const googleCallback = (req, res) => {
   const user = req.user;
   const token = generateToken(user);
 
-  const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5175').replace(
-    /\/+$/,
-    ''
-  );
+  const frontendUrl = (
+    process.env.FRONTEND_URL || 'http://localhost:5175'
+  ).replace(/\/+$/, '');
   res.redirect(`${frontendUrl}/login?token=${token}`);
 };
 

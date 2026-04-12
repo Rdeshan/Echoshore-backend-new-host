@@ -52,14 +52,15 @@ const sendAgentCredentialsEmail = async (agentEmail, agentData) => {
     }
 
     if (!transporter) {
-      logger.error('Email transporter is not configured. Missing SMTP credentials.');
+      logger.error(
+        'Email transporter is not configured. Missing SMTP credentials.'
+      );
       return false;
     }
 
-    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5175').replace(
-      /\/+$/,
-      ''
-    );
+    const frontendUrl = (
+      process.env.FRONTEND_URL || 'http://localhost:5175'
+    ).replace(/\/+$/, '');
 
     const mailOptions = {
       from: mailFrom,
