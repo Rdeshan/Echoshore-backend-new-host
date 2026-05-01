@@ -1,5 +1,19 @@
 const nodemailer = require('nodemailer');
 const logger = require('./logger');
+const dns = require('dns');
+
+// Prefer IPv4 addresses when resolving hostnames where possible to avoid
+// ENETUNREACH errors on platforms without IPv6 egress (some cloud hosts).
+if (dns.setDefaultResultOrder) {
+  try {
+    dns.setDefaultResultOrder('ipv4first');
+    logger.info('DNS result order set to ipv4first to prefer IPv4 for outgoing connections');
+  } catch (err) {
+    logger.warn('Could not set DNS result order:', err.message);
+  }
+} else {
+  logger.info('dns.setDefaultResultOrder not available on this Node version');
+}
 
 const EMAIL_ENABLED = process.env.EMAIL_ENABLED !== 'false';
 const smtpHost = process.env.SMTP_HOST;
