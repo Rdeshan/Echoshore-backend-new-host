@@ -40,9 +40,11 @@ const transporter = hasSmtpCredentials
             secure: smtpSecure,
           }
         : {
-            host: "smtp.gmail.com",   // ✅ force explicit host
-            port: 587,
-            secure: false,
+            host: 'smtp.gmail.com', // ✅ force explicit host
+            port: 465,
+            //port: 587,
+            secure: true,
+            //secure: false,
           }),
 
       auth: {
