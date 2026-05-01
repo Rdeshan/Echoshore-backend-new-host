@@ -39,6 +39,19 @@ const transporter = hasSmtpCredentials
     })
   : null;
 
+// Log transport summary (no secrets) to help debug deployment SMTP issues
+try {
+  if (transporter) {
+    const transportType = smtpHost ? `SMTP ${smtpHost}:${smtpPort}` : 'Gmail service (smtp.gmail.com)';
+    logger.info(`Email transporter configured: ${transportType}, EMAIL_ENABLED=${EMAIL_ENABLED}`);
+  } else {
+    logger.warn('Email transporter not configured (missing credentials). Emails will be disabled.');
+  }
+} catch (err) {
+  // Swallow logging errors to avoid startup failure
+  logger.warn('Failed to log email transporter configuration:', err.message);
+}
+
 /**
  * Send agent credentials email
  * @param {string} agentEmail - Agent's email address
@@ -139,6 +152,14 @@ const verifyConnection = async () => {
     if (!transporter) {
       logger.error('Email verification failed: transporter is not configured');
       return false;
+    }
+
+    // Log target host/port before attempting verify (helps identify network/connectivity issues)
+    try {
+      const target = smtpHost ? `${smtpHost}:${smtpPort}` : 'gmail service (smtp.gmail.com)';
+      logger.info(`Verifying SMTP connection to ${target}`);
+    } catch (e) {
+      logger.warn('Failed to compute SMTP target for verification logging');
     }
 
     await transporter.verify();
