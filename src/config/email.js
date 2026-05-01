@@ -40,17 +40,24 @@ const transporter = hasSmtpCredentials
             secure: smtpSecure,
           }
         : {
-            service: 'gmail',
+            host: "smtp.gmail.com",   // ✅ force explicit host
+            port: 587,
+            secure: false,
           }),
+
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
+
+      family: 4, // ✅🔥 FORCE IPv4 (MOST IMPORTANT FIX)
+
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
+
       tls: {
-        rejectUnauthorized: process.env.NODE_ENV === 'production',
+        rejectUnauthorized: false, // ✅ safer for cloud testing (change later)
       },
     })
   : null;
