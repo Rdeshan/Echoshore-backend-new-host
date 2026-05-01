@@ -7,7 +7,9 @@ const dns = require('dns');
 if (dns.setDefaultResultOrder) {
   try {
     dns.setDefaultResultOrder('ipv4first');
-    logger.info('DNS result order set to ipv4first to prefer IPv4 for outgoing connections');
+    logger.info(
+      'DNS result order set to ipv4first to prefer IPv4 for outgoing connections'
+    );
   } catch (err) {
     logger.warn('Could not set DNS result order:', err.message);
   }
