@@ -8,8 +8,8 @@ const smtpSecure =
   process.env.SMTP_SECURE != null
     ? process.env.SMTP_SECURE === 'true'
     : smtpPort === 465;
-const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
-const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+const smtpUser = process.env.GMAIL_USER;
+const smtpPass = process.env.GMAIL_APP_PASSWORD;
 const mailFrom = process.env.SMTP_FROM || smtpUser || 'noreply@ecoshore.com';
 
 const hasSmtpCredentials = Boolean(smtpUser && smtpPass);
