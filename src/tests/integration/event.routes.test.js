@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const { Event, Beach, User } = require('../../models');
 
 // ── Auth middleware mocks ──────────────────────────────────────────────────────
-const ADMIN_ID = '69a66b6ff592514a7cd8f197';const ORGANIZER_ID = '69a66b8af592514a7cd8f19c';
+const ADMIN_ID = '69a66b6ff592514a7cd8f197';
+const ORGANIZER_ID = '69a66b8af592514a7cd8f19c';
 
 jest.mock('../../middleware/requireAuth', () => (req, res, next) => {
   req.user = { id: ORGANIZER_ID, role: 'organizer' };
@@ -296,7 +297,9 @@ describe('Event API Integration', () => {
         chatGroupId: new mongoose.Types.ObjectId(),
       });
 
-      const response = await request(app).post(`/api/events/${event._id}/leave`);
+      const response = await request(app).post(
+        `/api/events/${event._id}/leave`
+      );
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -315,7 +318,9 @@ describe('Event API Integration', () => {
         volunteers: [], // not joined
       });
 
-      const response = await request(app).post(`/api/events/${event._id}/leave`);
+      const response = await request(app).post(
+        `/api/events/${event._id}/leave`
+      );
 
       expect(response.status).toBe(400);
     });

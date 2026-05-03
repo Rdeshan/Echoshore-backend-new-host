@@ -7,7 +7,9 @@ const { Event, Beach, User } = require('../../models/index');
 // Chat service is a real side-effect in joinEvent / leaveEvent / createEvent
 // Mock it so performance tests don't hit a real server.
 jest.mock('../../service/chat.service', () => ({
-  createChatGroup: jest.fn().mockResolvedValue({ _id: '60d21b4667d0d8992e610c99' }),
+  createChatGroup: jest
+    .fn()
+    .mockResolvedValue({ _id: '60d21b4667d0d8992e610c99' }),
   addMember: jest.fn().mockResolvedValue(true),
   removeMember: jest.fn().mockResolvedValue(true),
 }));
@@ -63,40 +65,36 @@ describe('Event Service Performance Tests', () => {
   // ─────────────────────────────────────────────────────────────
   // Bulk read performance – getEvents with pagination
   // ─────────────────────────────────────────────────────────────
-  it(
-    'should paginate 2000 events in under 200ms',
-    async () => {
-      const { start, end } = makeDates();
+  it('should paginate 2000 events in under 200ms', async () => {
+    const { start, end } = makeDates();
 
-      const docs = [];
-      for (let i = 0; i < 2000; i++) {
-        docs.push({
-          title: `Perf Event ${i}`,
-          description: 'Performance test event',
-          beachId,
-          organizerId,
-          startDate: start,
-          endDate: end,
-          status: 'UPCOMING',
-          isDeleted: false,
-        });
-      }
-      await Event.insertMany(docs);
+    const docs = [];
+    for (let i = 0; i < 2000; i++) {
+      docs.push({
+        title: `Perf Event ${i}`,
+        description: 'Performance test event',
+        beachId,
+        organizerId,
+        startDate: start,
+        endDate: end,
+        status: 'UPCOMING',
+        isDeleted: false,
+      });
+    }
+    await Event.insertMany(docs);
 
-      const startTime = performance.now();
-      const result = await eventService.getEvents({ status: 'UPCOMING' }, 3, 50);
-      const latencyMs = performance.now() - startTime;
+    const startTime = performance.now();
+    const result = await eventService.getEvents({ status: 'UPCOMING' }, 3, 50);
+    const latencyMs = performance.now() - startTime;
 
-      console.log(
-        `[Performance] getEvents (pagination page 3/50 on 2k docs): ${latencyMs.toFixed(2)} ms`
-      );
+    console.log(
+      `[Performance] getEvents (pagination page 3/50 on 2k docs): ${latencyMs.toFixed(2)} ms`
+    );
 
-      expect(result.events).toHaveLength(50);
-      expect(result.pagination.total).toBe(2000);
-      expect(latencyMs).toBeLessThan(200);
-    },
-    15000
-  );
+    expect(result.events).toHaveLength(50);
+    expect(result.pagination.total).toBe(2000);
+    expect(latencyMs).toBeLessThan(200);
+  }, 15000);
 
   // ─────────────────────────────────────────────────────────────
   // Single-document read – getEventById
@@ -216,9 +214,7 @@ describe('Event Service Performance Tests', () => {
     );
     const latencyMs = performance.now() - startTime;
 
-    console.log(
-      `[Performance] joinEvent latency: ${latencyMs.toFixed(2)} ms`
-    );
+    console.log(`[Performance] joinEvent latency: ${latencyMs.toFixed(2)} ms`);
 
     const joined = result.volunteers.some(
       (v) => (v?._id || v).toString() === volunteerId.toString()
@@ -260,9 +256,7 @@ describe('Event Service Performance Tests', () => {
     );
     const latencyMs = performance.now() - startTime;
 
-    console.log(
-      `[Performance] leaveEvent latency: ${latencyMs.toFixed(2)} ms`
-    );
+    console.log(`[Performance] leaveEvent latency: ${latencyMs.toFixed(2)} ms`);
 
     expect(result.message).toBe('Left event successfully');
     expect(latencyMs).toBeLessThan(100);
@@ -271,53 +265,49 @@ describe('Event Service Performance Tests', () => {
   // ─────────────────────────────────────────────────────────────
   // Read performance – getEventsByAgentId with 500 assigned events
   // ─────────────────────────────────────────────────────────────
-  it(
-    'should retrieve paginated agent events from 500 records in under 150ms',
-    async () => {
-      const agentId = new mongoose.Types.ObjectId();
-      await User.create({
-        _id: agentId,
-        name: 'Perf Agent',
-        email: 'perf-agent@test.com',
-        password: 'pass',
-        role: 'agent',
-        assignedBeach: beachId,
+  it('should retrieve paginated agent events from 500 records in under 150ms', async () => {
+    const agentId = new mongoose.Types.ObjectId();
+    await User.create({
+      _id: agentId,
+      name: 'Perf Agent',
+      email: 'perf-agent@test.com',
+      password: 'pass',
+      role: 'agent',
+      assignedBeach: beachId,
+    });
+
+    const { start, end } = makeDates();
+    const docs = [];
+    for (let i = 0; i < 500; i++) {
+      docs.push({
+        title: `Agent Perf Event ${i}`,
+        description: 'Desc',
+        beachId,
+        organizerId,
+        agentId,
+        startDate: start,
+        endDate: end,
+        status: 'UPCOMING',
+        isDeleted: false,
       });
+    }
+    await Event.insertMany(docs);
 
-      const { start, end } = makeDates();
-      const docs = [];
-      for (let i = 0; i < 500; i++) {
-        docs.push({
-          title: `Agent Perf Event ${i}`,
-          description: 'Desc',
-          beachId,
-          organizerId,
-          agentId,
-          startDate: start,
-          endDate: end,
-          status: 'UPCOMING',
-          isDeleted: false,
-        });
-      }
-      await Event.insertMany(docs);
+    const startTime = performance.now();
+    const result = await eventService.getEventsByAgentId(
+      agentId.toString(),
+      1,
+      25,
+      'UPCOMING'
+    );
+    const latencyMs = performance.now() - startTime;
 
-      const startTime = performance.now();
-      const result = await eventService.getEventsByAgentId(
-        agentId.toString(),
-        1,
-        25,
-        'UPCOMING'
-      );
-      const latencyMs = performance.now() - startTime;
+    console.log(
+      `[Performance] getEventsByAgentId (500 docs, page 1/25): ${latencyMs.toFixed(2)} ms`
+    );
 
-      console.log(
-        `[Performance] getEventsByAgentId (500 docs, page 1/25): ${latencyMs.toFixed(2)} ms`
-      );
-
-      expect(result.events).toHaveLength(25);
-      expect(result.pagination.total).toBe(500);
-      expect(latencyMs).toBeLessThan(150);
-    },
-    15000
-  );
+    expect(result.events).toHaveLength(25);
+    expect(result.pagination.total).toBe(500);
+    expect(latencyMs).toBeLessThan(150);
+  }, 15000);
 });

@@ -65,9 +65,16 @@ describe('Event Controller Unit Tests', () => {
 
       await eventController.getEvents(req, res, mockNext);
 
-      expect(eventService.getEvents).toHaveBeenCalledWith({ status: 'UPCOMING' }, 1, 10);
+      expect(eventService.getEvents).toHaveBeenCalledWith(
+        { status: 'UPCOMING' },
+        1,
+        10
+      );
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ success: true, data: mockResult });
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: mockResult,
+      });
     });
 
     it('should pass organizerId and startDate filters when provided', async () => {
@@ -75,7 +82,12 @@ describe('Event Controller Unit Tests', () => {
       eventService.getEvents.mockResolvedValue(mockResult);
 
       const req = {
-        query: { page: '2', limit: '5', organizerId: 'org1', startDate: '2025-01-01' },
+        query: {
+          page: '2',
+          limit: '5',
+          organizerId: 'org1',
+          startDate: '2025-01-01',
+        },
       };
       const res = mockResponse();
 
@@ -248,17 +260,25 @@ describe('Event Controller Unit Tests', () => {
   // ─────────────────────────────────────────────────────────────
   describe('leaveEvent', () => {
     it('should call leaveEvent and return 200', async () => {
-      eventService.leaveEvent.mockResolvedValue({ message: 'Left event successfully' });
+      eventService.leaveEvent.mockResolvedValue({
+        message: 'Left event successfully',
+      });
 
       const req = { params: { id: 'event123' }, user: { id: 'vol123' } };
       const res = mockResponse();
 
       await eventController.leaveEvent(req, res, mockNext);
 
-      expect(eventService.leaveEvent).toHaveBeenCalledWith('event123', 'vol123');
+      expect(eventService.leaveEvent).toHaveBeenCalledWith(
+        'event123',
+        'vol123'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, message: 'Left event successfully' })
+        expect.objectContaining({
+          success: true,
+          message: 'Left event successfully',
+        })
       );
     });
 
@@ -280,17 +300,25 @@ describe('Event Controller Unit Tests', () => {
   // ─────────────────────────────────────────────────────────────
   describe('deleteEvent', () => {
     it('should soft-delete event and return 200', async () => {
-      eventService.deleteEvent.mockResolvedValue({ message: 'Event deleted successfully' });
+      eventService.deleteEvent.mockResolvedValue({
+        message: 'Event deleted successfully',
+      });
 
       const req = { params: { id: 'event123' }, user: { id: 'user1' } };
       const res = mockResponse();
 
       await eventController.deleteEvent(req, res, mockNext);
 
-      expect(eventService.deleteEvent).toHaveBeenCalledWith('event123', 'user1');
+      expect(eventService.deleteEvent).toHaveBeenCalledWith(
+        'event123',
+        'user1'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, message: 'Event deleted successfully' })
+        expect.objectContaining({
+          success: true,
+          message: 'Event deleted successfully',
+        })
       );
     });
 
@@ -330,7 +358,10 @@ describe('Event Controller Unit Tests', () => {
         'UPCOMING'
       );
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ success: true, data: mockResult });
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: mockResult,
+      });
     });
 
     it('should call next with error on failure', async () => {

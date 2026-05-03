@@ -30,7 +30,10 @@ describe('Event Service Unit Tests', () => {
       const organizerId = '507f1f77bcf86cd799439011';
       const eventData = { title: 'Cleanup' };
 
-      User.findById.mockResolvedValue({ _id: organizerId, role: ROLES.ORGANIZER });
+      User.findById.mockResolvedValue({
+        _id: organizerId,
+        role: ROLES.ORGANIZER,
+      });
 
       const session = makeSession();
       Event.startSession.mockResolvedValue(session);
@@ -49,7 +52,9 @@ describe('Event Service Unit Tests', () => {
 
       Event.findById.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({ ...mockEvent[0], chatGroupId: 'chat123' }),
+        lean: jest
+          .fn()
+          .mockResolvedValue({ ...mockEvent[0], chatGroupId: 'chat123' }),
       });
 
       const result = await eventService.createEvent(organizerId, eventData);
@@ -63,9 +68,14 @@ describe('Event Service Unit Tests', () => {
 
     it('should throw AppError if user is not organizer or admin', async () => {
       const organizerId = '507f1f77bcf86cd799439011';
-      User.findById.mockResolvedValue({ _id: organizerId, role: ROLES.VOLUNTEER });
+      User.findById.mockResolvedValue({
+        _id: organizerId,
+        role: ROLES.VOLUNTEER,
+      });
 
-      await expect(eventService.createEvent(organizerId, {})).rejects.toThrow(AppError);
+      await expect(eventService.createEvent(organizerId, {})).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError if organizer is not found', async () => {
@@ -78,15 +88,18 @@ describe('Event Service Unit Tests', () => {
 
     it('should abort transaction and rethrow on error', async () => {
       const organizerId = '507f1f77bcf86cd799439011';
-      User.findById.mockResolvedValue({ _id: organizerId, role: ROLES.ORGANIZER });
+      User.findById.mockResolvedValue({
+        _id: organizerId,
+        role: ROLES.ORGANIZER,
+      });
 
       const session = makeSession();
       Event.startSession.mockResolvedValue(session);
       Event.create.mockRejectedValue(new Error('DB error'));
 
-      await expect(eventService.createEvent(organizerId, { title: 'X' })).rejects.toThrow(
-        'DB error'
-      );
+      await expect(
+        eventService.createEvent(organizerId, { title: 'X' })
+      ).rejects.toThrow('DB error');
       expect(session.abortTransaction).toHaveBeenCalled();
       expect(session.endSession).toHaveBeenCalled();
     });
@@ -108,9 +121,16 @@ describe('Event Service Unit Tests', () => {
       Event.find.mockReturnValue(mockQuery);
       Event.countDocuments.mockResolvedValue(1);
 
-      const result = await eventService.getEvents({ status: 'UPCOMING' }, 1, 10);
+      const result = await eventService.getEvents(
+        { status: 'UPCOMING' },
+        1,
+        10
+      );
 
-      expect(Event.find).toHaveBeenCalledWith({ isDeleted: false, status: 'UPCOMING' });
+      expect(Event.find).toHaveBeenCalledWith({
+        isDeleted: false,
+        status: 'UPCOMING',
+      });
       expect(result.events).toHaveLength(1);
       expect(result.pagination.total).toBe(1);
       expect(result.pagination.pages).toBe(1);
@@ -203,7 +223,9 @@ describe('Event Service Unit Tests', () => {
         lean: jest.fn().mockResolvedValue({ _id: eventId, title: 'Updated' }),
       });
 
-      const result = await eventService.updateEvent(eventId, userId, { title: 'Updated' });
+      const result = await eventService.updateEvent(eventId, userId, {
+        title: 'Updated',
+      });
 
       expect(mockSave).toHaveBeenCalled();
       expect(result.title).toBe('Updated');
@@ -221,7 +243,9 @@ describe('Event Service Unit Tests', () => {
 
       Event.findById.mockReturnValue({
         populate: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({ _id: eventId, title: 'Admin Updated' }),
+        lean: jest
+          .fn()
+          .mockResolvedValue({ _id: eventId, title: 'Admin Updated' }),
       });
 
       const result = await eventService.updateEvent(eventId, adminId, {
@@ -289,14 +313,21 @@ describe('Event Service Unit Tests', () => {
     it('should throw AppError when event not found', async () => {
       Event.findOne.mockResolvedValue(null);
 
-      await expect(eventService.assignAgent(eventId, agentId)).rejects.toThrow(AppError);
+      await expect(eventService.assignAgent(eventId, agentId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError when agent not found or wrong role', async () => {
-      Event.findOne.mockResolvedValue({ _id: eventId, beachId: { toString: () => beachId } });
+      Event.findOne.mockResolvedValue({
+        _id: eventId,
+        beachId: { toString: () => beachId },
+      });
       User.findOne.mockResolvedValue(null);
 
-      await expect(eventService.assignAgent(eventId, agentId)).rejects.toThrow(AppError);
+      await expect(eventService.assignAgent(eventId, agentId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError when agent is assigned to a different beach', async () => {
@@ -311,7 +342,9 @@ describe('Event Service Unit Tests', () => {
         assignedBeach: { toString: () => 'different-beach-id' },
       });
 
-      await expect(eventService.assignAgent(eventId, agentId)).rejects.toThrow(AppError);
+      await expect(eventService.assignAgent(eventId, agentId)).rejects.toThrow(
+        AppError
+      );
     });
   });
 
@@ -345,7 +378,11 @@ describe('Event Service Unit Tests', () => {
 
       expect(mockEvent.volunteers).toContain(userId);
       expect(mockEvent.save).toHaveBeenCalled();
-      expect(chatService.addMember).toHaveBeenCalledWith('chat123', userId, 'org123');
+      expect(chatService.addMember).toHaveBeenCalledWith(
+        'chat123',
+        userId,
+        'org123'
+      );
     });
 
     it('should throw AppError if event is not UPCOMING', async () => {
@@ -355,7 +392,9 @@ describe('Event Service Unit Tests', () => {
         volunteers: [],
       });
 
-      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError if user already joined', async () => {
@@ -365,7 +404,9 @@ describe('Event Service Unit Tests', () => {
         volunteers: [{ toString: () => userId }],
       });
 
-      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError if event is full', async () => {
@@ -379,13 +420,17 @@ describe('Event Service Unit Tests', () => {
         ],
       });
 
-      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError if event not found', async () => {
       Event.findOne.mockResolvedValue(null);
 
-      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.joinEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
   });
 
@@ -413,7 +458,11 @@ describe('Event Service Unit Tests', () => {
       const result = await eventService.leaveEvent(eventId, userId);
 
       expect(mockSave).toHaveBeenCalled();
-      expect(chatService.removeMember).toHaveBeenCalledWith('chat123', userId, userId);
+      expect(chatService.removeMember).toHaveBeenCalledWith(
+        'chat123',
+        userId,
+        userId
+      );
       expect(result.message).toBe('Left event successfully');
     });
 
@@ -423,13 +472,17 @@ describe('Event Service Unit Tests', () => {
         volunteers: [{ toString: () => 'someoneElse' }],
       });
 
-      await expect(eventService.leaveEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.leaveEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError if event not found', async () => {
       Event.findOne.mockResolvedValue(null);
 
-      await expect(eventService.leaveEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.leaveEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
   });
 
@@ -465,13 +518,17 @@ describe('Event Service Unit Tests', () => {
       });
       User.findById.mockResolvedValue({ role: ROLES.VOLUNTEER });
 
-      await expect(eventService.deleteEvent(eventId, otherId)).rejects.toThrow(AppError);
+      await expect(eventService.deleteEvent(eventId, otherId)).rejects.toThrow(
+        AppError
+      );
     });
 
     it('should throw AppError if event is not found', async () => {
       Event.findOne.mockResolvedValue(null);
 
-      await expect(eventService.deleteEvent(eventId, userId)).rejects.toThrow(AppError);
+      await expect(eventService.deleteEvent(eventId, userId)).rejects.toThrow(
+        AppError
+      );
     });
   });
 
