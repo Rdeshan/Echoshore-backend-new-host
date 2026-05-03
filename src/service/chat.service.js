@@ -304,9 +304,9 @@ class ChatService {
       requesterRole
     );
 
-    if (!canManageMembers) {
-      throw new AppError('Only admins and organizers can add members', 403);
-    }
+    // if (!canManageMembers) {
+    //   throw new AppError('Only admins and organizers can add members', 403);
+    // }
 
     const group = await ChatGroup.findById(groupId);
 
