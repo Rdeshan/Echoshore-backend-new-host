@@ -1,21 +1,18 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MongoMemoryReplSet } = require('mongodb-memory-server');
 
 let mongoServer;
 
-/**
- * Connect to the in-memory database.
- */
 const connectDB = async () => {
-  mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryReplSet.create({
+    replSet: { count: 1 }, // single-node replica set
+  });
+
   const uri = mongoServer.getUri();
 
   await mongoose.connect(uri);
 };
 
-/**
- * Drop database, close the connection and stop mongod.
- */
 const closeDB = async () => {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.connection.dropDatabase();
@@ -26,15 +23,11 @@ const closeDB = async () => {
   }
 };
 
-/**
- * Remove all data from all collections.
- */
 const clearDB = async () => {
   if (mongoose.connection.readyState !== 0) {
     const collections = mongoose.connection.collections;
     for (const key in collections) {
-      const collection = collections[key];
-      await collection.deleteMany();
+      await collections[key].deleteMany();
     }
   }
 };
