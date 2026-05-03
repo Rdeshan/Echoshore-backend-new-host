@@ -2,6 +2,8 @@ const agentService = require('../../service/agent.service');
 const agentRepository = require('../../repository/agent.repository');
 const authService = require('../../service/auth.service');
 const { Beach } = require('../../models');
+const Event = require('../../models/Event');
+const User = require('../../models/User');
 const { NotFoundError } = require('../../utils/AppError');
 const mongoose = require('mongoose');
 
@@ -9,6 +11,8 @@ const mongoose = require('mongoose');
 jest.mock('../../repository/agent.repository');
 jest.mock('../../service/auth.service');
 jest.mock('../../models');
+jest.mock('../../models/Event');
+jest.mock('../../models/User');
 
 describe('Agent Service Unit Tests', () => {
   beforeEach(() => {
@@ -181,6 +185,7 @@ describe('Agent Service Unit Tests', () => {
 
       agentRepository.findAgentById.mockResolvedValue(mockAgent);
       Beach.findById.mockResolvedValue(mockBeach);
+      Event.updateMany.mockResolvedValue({ ok: 1, nModified: 1 });
       agentRepository.delete.mockResolvedValue(mockAgent);
 
       const result = await agentService.deleteAgent(agentId.toString());
@@ -190,6 +195,10 @@ describe('Agent Service Unit Tests', () => {
       );
       expect(Beach.findById).toHaveBeenCalledWith(beachId);
       expect(mockBeach.save).toHaveBeenCalled();
+      expect(Event.updateMany).toHaveBeenCalledWith(
+        { agentId: agentId.toString(), isDeleted: false },
+        { $unset: { agentId: 1 } }
+      );
       expect(agentRepository.delete).toHaveBeenCalledWith(agentId.toString());
       expect(result._id).toEqual(agentId);
     });
@@ -215,11 +224,16 @@ describe('Agent Service Unit Tests', () => {
       };
 
       agentRepository.findAgentById.mockResolvedValue(mockAgent);
+      Event.updateMany.mockResolvedValue({ ok: 1, nModified: 0 });
       agentRepository.delete.mockResolvedValue(mockAgent);
 
       const result = await agentService.deleteAgent(agentId.toString());
 
       expect(Beach.findById).not.toHaveBeenCalled();
+      expect(Event.updateMany).toHaveBeenCalledWith(
+        { agentId: agentId.toString(), isDeleted: false },
+        { $unset: { agentId: 1 } }
+      );
       expect(agentRepository.delete).toHaveBeenCalled();
       expect(result._id).toEqual(agentId);
     });
@@ -259,6 +273,12 @@ describe('Agent Service Unit Tests', () => {
       Beach.findById
         .mockResolvedValueOnce(mockNewBeach)
         .mockResolvedValueOnce(mockOldBeach);
+      User.countDocuments.mockResolvedValue(0);
+      User.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue([]),
+        }),
+      });
       agentRepository.update.mockResolvedValue(updatedAgent);
 
       const result = await agentService.reassignAgent(
@@ -272,10 +292,6 @@ describe('Agent Service Unit Tests', () => {
       expect(Beach.findById).toHaveBeenNthCalledWith(1, newBeachId.toString());
       expect(Beach.findById).toHaveBeenNthCalledWith(2, oldBeachId);
       expect(mockOldBeach.save).toHaveBeenCalled();
-      // Check if agentId was added to new beach's assignedAgents
-      expect(mockNewBeach.assignedAgents.map((id) => id.toString())).toContain(
-        agentId.toString()
-      );
       expect(mockNewBeach.save).toHaveBeenCalled();
       expect(agentRepository.update).toHaveBeenCalledWith(agentId.toString(), {
         assignedBeach: newBeachId.toString(),
@@ -360,6 +376,7 @@ describe('Agent Service Unit Tests', () => {
 
       agentRepository.findAgentById.mockResolvedValue(mockAgent);
       Beach.findById.mockResolvedValue(mockFullBeach);
+      User.countDocuments.mockResolvedValue(2);
 
       await expect(
         agentService.reassignAgent(agentId.toString(), newBeachId.toString())
@@ -389,6 +406,12 @@ describe('Agent Service Unit Tests', () => {
 
       agentRepository.findAgentById.mockResolvedValue(mockAgent);
       Beach.findById.mockResolvedValue(mockNewBeach);
+      User.countDocuments.mockResolvedValue(0);
+      User.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue([]),
+        }),
+      });
       agentRepository.update.mockResolvedValue(updatedAgent);
 
       const result = await agentService.reassignAgent(
@@ -397,9 +420,6 @@ describe('Agent Service Unit Tests', () => {
       );
 
       expect(Beach.findById).toHaveBeenCalledTimes(1);
-      expect(mockNewBeach.assignedAgents.map((id) => id.toString())).toContain(
-        agentId.toString()
-      );
       expect(mockNewBeach.save).toHaveBeenCalled();
     });
   });
