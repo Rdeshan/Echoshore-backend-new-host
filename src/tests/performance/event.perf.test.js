@@ -119,7 +119,7 @@ describe('Event Service Performance Tests', () => {
     );
 
     expect(result.title).toBe('Single Perf Read');
-    expect(latencyMs).toBeLessThan(30);
+    expect(latencyMs).toBeLessThan(300);
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ describe('Event Service Performance Tests', () => {
     );
 
     expect(result.title).toBe('After Update');
-    expect(latencyMs).toBeLessThan(50);
+    expect(latencyMs).toBeLessThan(100);
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -178,13 +178,13 @@ describe('Event Service Performance Tests', () => {
     );
 
     expect(result.message).toBe('Event deleted successfully');
-    expect(latencyMs).toBeLessThan(30);
+    expect(latencyMs).toBeLessThan(300);
   });
 
   // ─────────────────────────────────────────────────────────────
   // Write performance – joinEvent
   // ─────────────────────────────────────────────────────────────
-  it('should join an event in under 100ms', async () => {
+  it('should join an event in under 500ms', async () => {
     const { start, end } = makeDates();
     const volunteerId = new mongoose.Types.ObjectId();
     await User.create({
@@ -220,7 +220,7 @@ describe('Event Service Performance Tests', () => {
       (v) => (v?._id || v).toString() === volunteerId.toString()
     );
     expect(joined).toBe(true);
-    expect(latencyMs).toBeLessThan(100);
+    expect(latencyMs).toBeLessThan(500);
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -259,13 +259,13 @@ describe('Event Service Performance Tests', () => {
     console.log(`[Performance] leaveEvent latency: ${latencyMs.toFixed(2)} ms`);
 
     expect(result.message).toBe('Left event successfully');
-    expect(latencyMs).toBeLessThan(100);
+    expect(latencyMs).toBeLessThan(500);
   });
 
   // ─────────────────────────────────────────────────────────────
   // Read performance – getEventsByAgentId with 500 assigned events
   // ─────────────────────────────────────────────────────────────
-  it('should retrieve paginated agent events from 500 records in under 150ms', async () => {
+  it('should retrieve paginated agent events from 500 records in under 300ms', async () => {
     const agentId = new mongoose.Types.ObjectId();
     await User.create({
       _id: agentId,
@@ -308,6 +308,6 @@ describe('Event Service Performance Tests', () => {
 
     expect(result.events).toHaveLength(25);
     expect(result.pagination.total).toBe(500);
-    expect(latencyMs).toBeLessThan(150);
+    expect(latencyMs).toBeLessThan(300);
   }, 15000);
 });

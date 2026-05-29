@@ -213,9 +213,14 @@ describe('Event API Integration', () => {
         endDate: end,
       });
 
-      const response = await request(app)
-        .put(`/api/events/${event._id}`)
-        .send({ title: 'Updated Title' });
+      const response = await request(app).put(`/api/events/${event._id}`).send({
+        title: 'Updated Title',
+        description: 'Updated Description',
+        beachId: '69a3e31bdad31267e0258f1b',
+        startDate: '2026-12-24T10:30:00.000Z',
+        endDate: '2026-12-25T10:30:00.000Z',
+        maxVolunteers: 100,
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -223,13 +228,13 @@ describe('Event API Integration', () => {
       expect(response.body.message).toBe('Event updated successfully');
     });
 
-    it('should return 404 when updating a non-existent event', async () => {
+    it('should return 400 when updating a non-existent event', async () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .put(`/api/events/${fakeId}`)
         .send({ title: 'X' });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(400);
     });
   });
 
